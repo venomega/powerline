@@ -25,6 +25,3 @@ node client.js
 - **Estado VERDE**: Ping recibido en el último minuto
 - La página web se actualiza en tiempo real via WebSocket
 
-## Archivos generados
-- `server.crt`, `server.key`: Certificados SSL autofirmados
-- `index.html`: Interfaz web de monitoreo
