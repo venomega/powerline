@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Corriente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.5s ease;
+        }
+
+        .container.power-on {
+            background-color: #00ff00;
+        }
+
+        .container.power-off {
+            background-color: #ff0000;
+        }
+
+        .status-text {
+            font-size: 4rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 2rem;
+        }
+
+        .status-indicator {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 10px solid white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 1.2rem;
+            background-color: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 1rem;
+            background-color: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container" class="container power-off">
+        <div class="info">
+            <h1>Monitor de Corriente</h1>
+        </div>
+        
+        <div class="connection-status" id="connectionStatus">
+            Conectando al servidor...
+        </div>
+        
+        <div class="status-text" id="statusText">
+            SIN CORRIENTE
+        </div>
+        
+        <div class="status-indicator">
+		<!-- 
+            <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="white" opacity="0.8"/>
+                <path id="powerIcon" d="M50 10 L50 40 M30 30 Q50 50 70 30 Q50 50 30 30" 
+                      stroke="black" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </svg>
+		-->
+		<img style="width=100px; height: 100px;" src="https://www.svgrepo.com/show/431195/power.svg" alt="Power Icon">
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const statusText = document.getElementById('statusText');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        let ws;
+        let reconnectInterval;
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}`;
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = function() {
+                    console.log('Conectado al servidor WebSocket');
+                    connectionStatus.textContent = 'Conectado al servidor';
+                    connectionStatus.style.backgroundColor = 'rgba(0,255,0,0.3)';
+                    clearInterval(reconnectInterval);
+                };
+                
+                ws.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    updateStatus(data.status);
+                };
+                
+                ws.onclose = function() {
+                    console.log('Desconectado del servidor WebSocket');
+                    connectionStatus.textContent = 'Desconectado - Reintentando...';
+                    connectionStatus.style.backgroundColor = 'rgba(255,0,0,0.3)';
+                    
+                    clearInterval(reconnectInterval);
+                    reconnectInterval = setInterval(connectWebSocket, 5000);
+                };
+                
+                ws.onerror = function(error) {
+                    console.error('Error WebSocket:', error);
+                    connectionStatus.textContent = 'Error de conexión';
+                };
+            } catch (error) {
+                console.error('Error al conectar WebSocket:', error);
+                connectionStatus.textContent = 'Error de conexión';
+            }
+        }
+
+        function updateStatus(status) {
+            if (status === 'ON') {
+                container.className = 'container power-on';
+                statusText.textContent = 'CORRIENTE OK';
+            } else {
+                container.className = 'container power-off';
+                statusText.textContent = 'SIN CORRIENTE';
+            }
+        }
+
+        connectWebSocket();
+    </script>
+</body>
+</html>
