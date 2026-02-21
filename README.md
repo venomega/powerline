@@ -13,8 +13,6 @@ node server.js server.crt server.key
 - Requiere archivos de certificado SSL como argumentos
 - Muestra página web en https://localhost:9009
 
-
-
 ### Cliente
 ```bash
 node client.js
