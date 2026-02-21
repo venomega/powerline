@@ -6,6 +6,8 @@ Aplicación cliente-servidor para monitorear el estado de corriente mediante pin
 ## Uso
 
 
+
+
 ### Servidor
 ```bash
 node server.js server.crt server.key
