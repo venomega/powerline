@@ -29,6 +29,16 @@ const app = express();
 
 app.use(express.static(__dirname));
 
+// Serve manifest.json with correct MIME type
+app.get('/manifest.json', (req, res) => {
+    res.type('application/manifest+json').sendFile(__dirname + '/manifest.json');
+});
+
+// Serve service worker with correct MIME type
+app.get('/sw.js', (req, res) => {
+    res.type('application/javascript').sendFile(__dirname + '/sw.js');
+});
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
